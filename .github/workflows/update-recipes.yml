@@ -1,0 +1,79 @@
+name: Update PKGBUILD recipes & Publish RPC
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  update-recipes:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm git pacman-contrib nvchecker python jq curl
+          useradd --create-home builder
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare permissions
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+
+      - name: Check upstream & update PKGBUILDs
+        run: |
+          set -Eeuo pipefail
+          [ -f nvchecker.json ] || echo "{}" > nvchecker.json
+          nvchecker -c nvchecker.toml --oldfile nvchecker.json --newfile nvchecker_new.json || true
+          
+          python3 ./scripts/check-updates.py
+          
+          [ -f nvchecker_new.json ] && mv nvchecker_new.json nvchecker.json
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+
+      - name: Generate .SRCINFO files
+        run: |
+          set -Eeuo pipefail
+          runuser -u builder -- ./scripts/generate-srcinfo.sh
+
+      - name: Commit and push changes
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -Eeuo pipefail
+          git add nvchecker.json
+          
+          while IFS= read -r -d '' file; do
+            git add "$file"
+          done < <(find pkgs \( -name PKGBUILD -o -name .SRCINFO \) -print0)
+
+          if git diff --cached --quiet; then
+            echo ":: No changes to commit."
+          else
+            git commit -m "auto: update PKGBUILD recipes"
+            git push origin "HEAD:${DEFAULT_BRANCH}"
+          fi
+
+      - name: Build RPC Index & Deploy Pages
+        run: |
+          set -Eeuo pipefail
+          python3 ./scripts/build-rpc-index.py
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
