@@ -78,4 +78,4 @@ for raw_pkgname, info in version_map.items():
         pkgbuild_path.write_text(updated)
         print(f":: Updated {pkgbuild_path.parent.name} ({raw_pkgname}) -> {clean_ver}-1")
     else:
-        print(f":: {pkgbuild_path.parent.name} ({raw_pkgname}) is already at latest version ({clean_ver}).")[cite: 9]
+        print(f":: {pkgbuild_path.parent.name} ({raw_pkgname}) is already at latest version ({clean_ver}).")
