@@ -36,12 +36,11 @@ jobs:
       - name: Check upstream & update PKGBUILDs
         run: |
           set -Eeuo pipefail
-          [ -f nvchecker.json ] || echo "{}" > nvchecker.json
+          [ -f nvchecker.json ] || touch nvchecker.json
+          
           nvchecker -c nvchecker.toml --file nvchecker.json
           
           python3 ./scripts/check-updates.py
-          
-          [ -f nvchecker_new.json ] && mv nvchecker_new.json nvchecker.json
           chown -R builder:builder "$GITHUB_WORKSPACE"
 
       - name: Generate .SRCINFO files
@@ -54,11 +53,7 @@ jobs:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -Eeuo pipefail
-          git add nvchecker.json
-          
-          while IFS= read -r -d '' file; do
-            git add "$file"
-          done < <(find pkgs \( -name PKGBUILD -o -name .SRCINFO \) -print0)
+          git add nvchecker.json pkgs/
 
           if git diff --cached --quiet; then
             echo ":: No changes to commit."
