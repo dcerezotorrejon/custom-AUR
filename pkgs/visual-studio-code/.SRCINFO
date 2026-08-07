@@ -1,4 +1,4 @@
-pkgbase = code-official-bin
+pkgbase = visual-studio-code
 	pkgdesc = Visual Studio Code - Official binary build from Microsoft
 	pkgver = 1.131.0
 	pkgrel = 1
@@ -36,4 +36,4 @@ pkgbase = code-official-bin
 	source_aarch64 = vscode-latest-arm64.tar.gz::https://update.code.visualstudio.com/1.131.0/linux-arm64/stable
 	sha256sums_aarch64 = SKIP
 
-pkgname = code-official-bin
+pkgname = visual-studio-code

@@ -37,14 +37,17 @@ jobs:
         run: |
           set -Eeuo pipefail
           
-          # Si no existe o si contiene un JSON viejo ({}), lo vaciamos a formato TOML
-          if [ ! -f nvchecker.json ] || grep -q "^{" nvchecker.json; then
-            > nvchecker.json
-          fi
-          
-          nvchecker -c nvchecker.toml --file nvchecker.json
-          
+          # Inicializar oldver.json si no existe
+          [ -f oldver.json ] || echo '{"version": 2, "data": {}}' > oldver.json
+
+          # Consultar versiones e invocar la comparación
+          nvchecker -c nvchecker.toml
+
+          # Procesar cambios con Python
           python3 ./scripts/check-updates.py
+
+          # Rotar el estado para la próxima ejecución
+          [ -f newver.json ] && mv newver.json oldver.json
           chown -R builder:builder "$GITHUB_WORKSPACE"
 
       - name: Generate .SRCINFO files
