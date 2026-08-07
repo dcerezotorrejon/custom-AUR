@@ -36,7 +36,11 @@ jobs:
       - name: Check upstream & update PKGBUILDs
         run: |
           set -Eeuo pipefail
-          [ -f nvchecker.json ] || touch nvchecker.json
+          
+          # Si no existe o si contiene un JSON viejo ({}), lo vaciamos a formato TOML
+          if [ ! -f nvchecker.json ] || grep -q "^{" nvchecker.json; then
+            > nvchecker.json
+          fi
           
           nvchecker -c nvchecker.toml --file nvchecker.json
           
