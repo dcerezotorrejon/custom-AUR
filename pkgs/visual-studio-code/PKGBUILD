@@ -1,5 +1,5 @@
 # Maintainer: Local Build
-pkgname=code-official-bin
+pkgname=visual-studio-code
 _pkgname=code
 pkgver=1.131.0
 pkgrel=1

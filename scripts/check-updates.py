@@ -3,7 +3,7 @@ import json
 import re
 from pathlib import Path
 
-new_file = Path("nvchecker_new.json")
+new_file = Path("nvchecker.json")
 if not new_file.exists():
     print(":: No updates detected by nvchecker.")
     raise SystemExit(0)
@@ -13,7 +13,7 @@ with new_file.open() as f:
 
 version_map = data.get("data", data)
 if not isinstance(version_map, dict):
-    raise SystemExit(":: Error: Invalid json format in nvchecker_new.json")
+    raise SystemExit(":: Error: Invalid json format in nvchecker.json")
 
 for pkgname, info in version_map.items():
     new_ver = info.get("version") if isinstance(info, dict) else info
