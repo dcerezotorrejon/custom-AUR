@@ -1,5 +1,3 @@
 [visual-studio-code]
-source = "github"
-github = "microsoft/vscode"
-use_max_tag = true
-prefix = ""
+source = "cmd"
+cmd = "curl -s https://update.code.visualstudio.com/api/releases/stable | jq -r '.[0]'"
