@@ -37,7 +37,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           [ -f nvchecker.json ] || echo "{}" > nvchecker.json
-          nvchecker -c nvchecker.toml --oldfile nvchecker.json --newfile nvchecker_new.json || true
+          nvchecker -c nvchecker.toml --file nvchecker.json
           
           python3 ./scripts/check-updates.py
           
