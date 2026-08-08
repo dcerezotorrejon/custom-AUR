@@ -37,19 +37,18 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          # 1. Crear oldver.json si es la primera ejecución
           [ -f oldver.json ] || echo '{}' > oldver.json
-
-          # 2. Consultar nuevas versiones con nvchecker
           nvchecker -c nvchecker.toml || true
 
-          # 3. Actualizar PKGBUILDs con Python
-          python3 ./scripts/check-updates.py
+          # Ejecuta check-updates (que ahora incluye updpkgsums) como el usuario builder
+          runuser -u builder -- python3 ./scripts/check-updates.py
 
-          # 4. Regenerar archivos .SRCINFO invocando la función de Arch
+          # Limpiar archivos tarball o fuentes descargadas por updpkgsums
+          git clean -fxd pkgs/
+
+          # Regenerar .SRCINFO con los nuevos checksums ya incrustados
           runuser -u builder -- ./scripts/generate-srcinfo.sh
 
-          # 5. Rotar newver.json a oldver.json para guardar el estado
           if [ -f newver.json ] && [ -s newver.json ]; then
             mv newver.json oldver.json
           fi
