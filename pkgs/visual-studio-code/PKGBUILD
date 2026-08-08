@@ -1,10 +1,10 @@
 # Maintainer: Local Build
 pkgname=visual-studio-code
 _pkgname=code
-pkgver=1.132.0
+pkgver=1.130.0
 pkgrel=1
 pkgdesc="Visual Studio Code - Official binary build from Microsoft"
-arch=('x86_64' 'aarch64')
+arch=('x86_64')
 url="https://code.visualstudio.com/"
 license=('custom:freeware')
 
@@ -40,11 +40,9 @@ conflicts=('code' 'visual-studio-code-bin' 'code-git')
 
 # --- TARBALLS OFICIALES POR ARQUITECTURA ---
 source_x86_64=("vscode-latest-x64.tar.gz::https://update.code.visualstudio.com/${pkgver}/linux-x64/stable")
-source_aarch64=("vscode-latest-arm64.tar.gz::https://update.code.visualstudio.com/${pkgver}/linux-arm64/stable")
 
 # Omisión de hashes para automatización en GitHub Actions
 sha256sums_x86_64=('acdaf0fa557bda1720956ff65ca0de0965e92d68f97e2db22341984400937aed')
-sha256sums_aarch64=('203e0959cb1e1f046e970a58b3fdf609c3ad5ecd3bdc22cd621332ed945b7079')
 
 package() {
     # El tarball se descomprime automáticamente dentro de $srcdir en una carpeta tipo VSCode-linux-x64
