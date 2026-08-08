@@ -72,14 +72,3 @@ jobs:
             git commit -m "auto: update PKGBUILD recipes"
             git push origin "HEAD:${DEFAULT_BRANCH}"
           fi
-
-      - name: Build RPC Index & Deploy Pages
-        run: |
-          set -Eeuo pipefail
-          python3 ./scripts/build-rpc-index.py
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
