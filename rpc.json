@@ -1,0 +1,15 @@
+{
+  "version": 5,
+  "type": "multiinfo",
+  "resultcount": 1,
+  "results": [
+    {
+      "Name": "visual-studio-code",
+      "PackageBase": "visual-studio-code",
+      "Version": "1.132.0-1",
+      "Description": "Visual Studio Code - Official binary build from Microsoft",
+      "URLPath": "https://github.com/dcerezotorrejon/custom-AUR/raw/main/pkgs/visual-studio-code",
+      "URL": "https://github.com/dcerezotorrejon/custom-AUR"
+    }
+  ]
+}
