@@ -31,4 +31,4 @@ pkgbase = visual-studio-code
 	conflicts = visual-studio-code-bin
 	conflicts = code-git
 	source_x86_64 = vscode-latest-x64.tar.gz::https://update.code.visualstudio.com/1.130.0/linux-x64/stable
-pkgname = visual-studio-code
+pkgname = visual-studio-code 

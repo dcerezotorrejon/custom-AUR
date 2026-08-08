@@ -1,5 +1,5 @@
-# Maintainer: Local Build
-pkgname=visual-studio-code
+# Author: Daniel Cerezo <dcerezotorrejon>
+pkgname=visual-studio-code-cAUR
 _pkgname=code
 pkgver=1.130.0
 pkgrel=1
@@ -41,8 +41,7 @@ conflicts=('code' 'visual-studio-code-bin' 'code-git')
 # --- TARBALLS OFICIALES POR ARQUITECTURA ---
 source_x86_64=("vscode-latest-x64.tar.gz::https://update.code.visualstudio.com/${pkgver}/linux-x64/stable")
 
-# Omisión de hashes para automatización en GitHub Actions
-sha256sums_x86_64=('acdaf0fa557bda1720956ff65ca0de0965e92d68f97e2db22341984400937aed')
+
 
 package() {
     # El tarball se descomprime automáticamente dentro de $srcdir en una carpeta tipo VSCode-linux-x64
