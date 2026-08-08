@@ -1,4 +1,4 @@
-name: Update PKGBUILD recipes & Publish RPC
+name: Update PKGBUILD recipes
 
 on:
   schedule:
