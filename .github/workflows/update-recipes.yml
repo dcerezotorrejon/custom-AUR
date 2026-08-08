@@ -33,34 +33,39 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           chown -R builder:builder "$GITHUB_WORKSPACE"
 
-      - name: Check upstream & update PKGBUILDs
+      - name: Check upstream, update PKGBUILDs & refresh .SRCINFO
         run: |
           set -Eeuo pipefail
-          
-          # Inicializar oldver.json si no existe
-          [ -f oldver.json ] || echo '{"version": 2, "data": {}}' > oldver.json
 
-          # Consultar versiones e invocar la comparación
-          nvchecker -c nvchecker.toml
+          # 1. Crear oldver.json si es la primera ejecución
+          [ -f oldver.json ] || echo '{}' > oldver.json
 
-          # Procesar cambios con Python
+          # 2. Consultar nuevas versiones con nvchecker
+          nvchecker -c nvchecker.toml || true
+
+          # 3. Actualizar PKGBUILDs con Python
           python3 ./scripts/check-updates.py
 
-          # Rotar el estado para la próxima ejecución
-          [ -f newver.json ] && mv newver.json oldver.json
-          chown -R builder:builder "$GITHUB_WORKSPACE"
-
-      - name: Generate .SRCINFO files
-        run: |
-          set -Eeuo pipefail
+          # 4. Regenerar archivos .SRCINFO invocando la función de Arch
           runuser -u builder -- ./scripts/generate-srcinfo.sh
+
+          # 5. Rotar newver.json a oldver.json para guardar el estado
+          if [ -f newver.json ] && [ -s newver.json ]; then
+            mv newver.json oldver.json
+          fi
+
+          chown -R builder:builder "$GITHUB_WORKSPACE"
 
       - name: Commit and push changes
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -Eeuo pipefail
-          git add *
+          
+          git add oldver.json
+          while IFS= read -r -d '' file; do
+            git add "$file"
+          done < <(find pkgs \( -name PKGBUILD -o -name .SRCINFO \) -print0)
 
           if git diff --cached --quiet; then
             echo ":: No changes to commit."
