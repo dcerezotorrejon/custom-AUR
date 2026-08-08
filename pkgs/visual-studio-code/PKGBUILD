@@ -1,7 +1,7 @@
 # Maintainer: Local Build
 pkgname=visual-studio-code
 _pkgname=code
-pkgver=1.130.0
+pkgver=1.132.0
 pkgrel=1
 pkgdesc="Visual Studio Code - Official binary build from Microsoft"
 arch=('x86_64' 'aarch64')
