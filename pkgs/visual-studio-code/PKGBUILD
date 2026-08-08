@@ -1,4 +1,4 @@
-# Author: Daniel Cerezo <dcerezotorrejon>
+# Maintainer: Daniel Cerezo <dcerezotorrejon>
 pkgname=visual-studio-code-cAUR
 _pkgname=code
 pkgver=1.130.0
