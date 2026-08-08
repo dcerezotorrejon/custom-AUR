@@ -40,13 +40,45 @@ jobs:
           [ -f oldver.json ] || echo '{}' > oldver.json
           nvchecker -c nvchecker.toml || true
 
-          # Ejecuta check-updates (que ahora incluye updpkgsums) como el usuario builder
+          # 1. Actualiza pkgver y recalcula hashes
           runuser -u builder -- python3 ./scripts/check-updates.py
 
-          # Limpiar archivos tarball o fuentes descargadas por updpkgsums
+          # 2. Auditoría con Namcap y generación de reporte en GitHub
+          pacman -S --noconfirm namcap
+
+          echo "## 🔍 Reporte de Auditoría de Recetas" >> $GITHUB_STEP_SUMMARY
+          echo "| Paquete | Estado | Resultado / Detalles |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+
+          HAS_ERRORS=0
+
+          for pkgbuild in pkgs/*/PKGBUILD; do
+            pkg_name=$(basename "$(dirname "$pkgbuild")")
+            report=$(namcap "$pkgbuild" 2>&1 || true)
+
+            if echo "$report" | grep -q "E:"; then
+              clean_report=$(echo "$report" | tr '\n' '<br>' | sed 's/|/\\|/g')
+              echo "| \`$pkg_name\` | ❌ **Error Crítico** | $clean_report |" >> $GITHUB_STEP_SUMMARY
+              echo "::error file=$pkgbuild,title=Error crítico en $pkg_name::$report"
+              HAS_ERRORS=1
+            elif echo "$report" | grep -q "W:"; then
+              clean_report=$(echo "$report" | tr '\n' '<br>' | sed 's/|/\\|/g')
+              echo "| \`$pkg_name\` | ⚠️ **Advertencia** | $clean_report |" >> $GITHUB_STEP_SUMMARY
+              echo "::warning file=$pkgbuild,title=Advertencia en $pkg_name::$report"
+            else
+              echo "| \`$pkg_name\` | ✅ **OK** | Sintaxis y dependencias válidas |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          if [ "$HAS_ERRORS" -eq 1 ]; then
+            echo "::error::Se detectaron errores críticos de namcap en alguna receta. Cancelando commit."
+            exit 1
+          fi
+
+          # 3. Limpia fuentes temporales descargadas por updpkgsums
           git clean -fxd pkgs/
 
-          # Regenerar .SRCINFO con los nuevos checksums ya incrustados
+          # 4. Regenera metadatos .SRCINFO
           runuser -u builder -- ./scripts/generate-srcinfo.sh
 
           if [ -f newver.json ] && [ -s newver.json ]; then
