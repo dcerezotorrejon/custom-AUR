@@ -27,12 +27,24 @@ if not isinstance(version_map, dict) or not version_map:
 
 def build_pkgbuild_index():
     index = {}
-    pkgs_dir = Path("pkgs")
-    if not pkgs_dir.is_dir():
-        return index
+    
+    # Carpetas en la raíz que NO contienen paquetes y queremos ignorar explícitamente
+    ignored_dirs = {"scripts", "utils", "ci-helpers"}
 
-    for pkgbuild_path in pkgs_dir.glob("*/PKGBUILD"):
-        folder_name = pkgbuild_path.parent.name
+    # Escaneamos todas las subcarpetas del directorio actual (raíz)
+    for pkg_dir in Path(".").iterdir():
+        if not pkg_dir.is_dir():
+            continue
+            
+        # Ignoramos carpetas ocultas (como .git o .github) o de herramientas
+        if pkg_dir.name.startswith(".") or pkg_dir.name in ignored_dirs:
+            continue
+
+        pkgbuild_path = pkg_dir / "PKGBUILD"
+        if not pkgbuild_path.is_file():
+            continue
+
+        folder_name = pkg_dir.name
         index[folder_name] = pkgbuild_path
 
         content = pkgbuild_path.read_text()
