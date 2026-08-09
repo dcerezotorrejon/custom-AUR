@@ -91,4 +91,4 @@ EOF
         install -m644 "$LICENSE_FILE" "${pkgdir}/usr/share/licenses/${pkgname}/"
     fi
 }
-sha256sums_x86_64=('SKIP')
+sha256sums_x86_64=()
