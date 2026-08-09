@@ -39,7 +39,7 @@ provides=('code' 'visual-studio-code')
 conflicts=('code' 'visual-studio-code-bin' 'code-git')
 
 # --- TARBALLS OFICIALES POR ARQUITECTURA ---
-source_x86_64=("vscode-latest-x64.tar.gz::https://update.code.visualstudio.com/${pkgver}/linux-x64/stable")
+source_x86_64=("vscode-${pkgver}-x64.tar.gz::https://update.code.visualstudio.com/${pkgver}/linux-x64/stable")
 
 
 
