@@ -2,6 +2,6 @@
 oldver = "oldver.json"
 newver = "newver.json"
 
-[visual-studio-code-caur]
+[visual-studio-code]
 source = "cmd"
 cmd = "curl -s https://update.code.visualstudio.com/api/releases/stable | jq -r '.[0]'"
