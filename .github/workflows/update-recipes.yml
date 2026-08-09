@@ -78,9 +78,6 @@ jobs:
           # 3. Limpia fuentes temporales descargadas por updpkgsums
           git clean -fxd ./
 
-          # 4. Regenera metadatos .SRCINFO
-          runuser -u builder -- ./.scripts/generate-srcinfo.sh
-
           if [ -f newver.json ] && [ -s newver.json ]; then
             mv newver.json oldver.json
           fi

@@ -89,13 +89,22 @@ for raw_pkgname, info in version_map.items():
         pkg_dir = pkgbuild_path.parent
         print(f":: Updated {pkg_dir.name} ({raw_pkgname}) -> {clean_ver}-1")
 
-        # 2. Descargar fuentes y actualizar sha256sums en el PKGBUILD
+        # 1. Actualizar sha256sums en el PKGBUILD
         print(f":: Updating checksums for {pkg_dir.name}...")
         try:
             subprocess.run(["updpkgsums"], cwd=pkg_dir, check=True)
             print(f":: Checksums updated successfully for {pkg_dir.name}")
         except subprocess.CalledProcessError as e:
             print(f":: Error updating checksums for {pkg_dir.name}: {e}")
+
+        # 2. Generar .SRCINFO actualizado para esta receta
+        print(f":: Generating .SRCINFO for {pkg_dir.name}...")
+        try:
+            with open(pkg_dir / ".SRCINFO", "w", encoding="utf-8") as f:
+                subprocess.run(["makepkg", "--printsrcinfo"], cwd=pkg_dir, stdout=f, check=True)
+            print(f":: .SRCINFO updated successfully for {pkg_dir.name}")
+        except subprocess.CalledProcessError as e:
+            print(f":: Error generating .SRCINFO for {pkg_dir.name}: {e}")
 
         updated_count += 1
     else:
