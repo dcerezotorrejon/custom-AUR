@@ -41,7 +41,7 @@ jobs:
           nvchecker -c nvchecker.toml || true
 
           # 1. Actualiza pkgver y recalcula hashes
-          runuser -u builder -- python3 ./scripts/check-updates.py
+          runuser -u builder -- python3 ./.scripts/check-updates.py
 
           # 2. Auditoría con Namcap y generación de reporte en GitHub
           pacman -S --noconfirm namcap
@@ -52,8 +52,15 @@ jobs:
 
           HAS_ERRORS=0
 
-          for pkgbuild in pkgs/*/PKGBUILD; do
+          # MODIFICACIÓN 1: Cambiado 'pkgs/*/PKGBUILD' por '*/PKGBUILD'
+          for pkgbuild in */PKGBUILD; do
             pkg_name=$(basename "$(dirname "$pkgbuild")")
+            
+            # FILTRO: Evita escanear carpetas del sistema si contienen PKGBUILDs por error
+            if [[ "$pkg_name" == "scripts" || "$pkg_name" == "utils" ]]; then
+              continue
+            fi
+
             report=$(namcap "$pkgbuild" 2>&1 || true)
 
             if echo "$report" | grep -q "E:"; then
@@ -75,11 +82,14 @@ jobs:
             exit 1
           fi
 
-          # 3. Limpia fuentes temporales descargadas por updpkgsums
-          git clean -fxd pkgs/
+          # MODIFICACIÓN 2: Evitamos hacer 'git clean' en todo el proyecto para no borrar scripts
+          # Limpiamos archivos temporales carpeta por carpeta usando find a primer nivel
+          while IFS= read -r -d '' src_dir; do
+            git clean -fxd "$src_dir"
+          done < <(find . -maxdepth 2 -mindepth 2 -name PKGBUILD -exec dirname {} \; -print0)
 
           # 4. Regenera metadatos .SRCINFO
-          runuser -u builder -- ./scripts/generate-srcinfo.sh
+          runuser -u builder -- ./.scripts/generate-srcinfo.sh
 
           if [ -f newver.json ] && [ -s newver.json ]; then
             mv newver.json oldver.json
@@ -94,9 +104,12 @@ jobs:
           set -Eeuo pipefail
           
           git add oldver.json
+          
+          # MODIFICACIÓN 3: Cambiado 'find pkgs' por 'find .' filtrando profundidad
+          # para no añadir por accidente scripts u otros archivos de la raíz
           while IFS= read -r -d '' file; do
             git add "$file"
-          done < <(find pkgs \( -name PKGBUILD -o -name .SRCINFO \) -print0)
+          done < <(find . -maxdepth 3 -mindepth 3 \( -name PKGBUILD -o -name .SRCINFO \) -print0)
 
           if git diff --cached --quiet; then
             echo ":: No changes to commit."
