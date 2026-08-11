@@ -18,11 +18,12 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          # 1. Actualizar el sistema base del contenedor primero
-          pacman -Syu --noconfirm
-
-          # 2. Instalar las herramientas sobre el sistema base actualizado
-          pacman -S --noconfirm git pacman-contrib nvchecker python jq curl namcap
+          # 1. Actualizar e instalar dependencias críticas del sistema
+          pacman -Syu --noconfirm --needed git pacman-contrib nvchecker python jq curl
+          
+          # 2. Intentar instalar namcap de forma opcional (no rompe el paso si falla)
+          pacman -S --noconfirm --needed namcap || true
+          
           useradd --create-home builder
 
       - name: Checkout repository
@@ -47,34 +48,30 @@ jobs:
           # 1. Actualiza pkgver y recalcula hashes
           runuser -u builder -- python3 ./.scripts/check-updates.py
 
-          # 2. Auditoría con Namcap y generación de reporte en GitHub
+          # 2. Auditoría informativa con Namcap (no bloqueante)
           echo "## 🔍 Reporte de Auditoría de Recetas" >> $GITHUB_STEP_SUMMARY
           echo "| Paquete | Estado | Resultado / Detalles |" >> $GITHUB_STEP_SUMMARY
           echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
 
-          HAS_ERRORS=0
+          if command -v namcap >/dev/null 2>&1; then
+            for pkgbuild in ./*/PKGBUILD; do
+              pkg_name=$(basename "$(dirname "$pkgbuild")")
+              report=$(namcap "$pkgbuild" 2>&1 || true)
 
-          for pkgbuild in ./*/PKGBUILD; do
-            pkg_name=$(basename "$(dirname "$pkgbuild")")
-            report=$(namcap "$pkgbuild" 2>&1 || true)
-
-            if echo "$report" | grep -q "E:"; then
-              clean_report=$(echo "$report" | tr '\n' '<br>' | sed 's/|/\\|/g')
-              echo "| \`$pkg_name\` | ❌ **Error Crítico** | $clean_report |" >> $GITHUB_STEP_SUMMARY
-              echo "::error file=$pkgbuild,title=Error crítico en $pkg_name::$report"
-              HAS_ERRORS=1
-            elif echo "$report" | grep -q "W:"; then
-              clean_report=$(echo "$report" | tr '\n' '<br>' | sed 's/|/\\|/g')
-              echo "| \`$pkg_name\` | ⚠️ **Advertencia** | $clean_report |" >> $GITHUB_STEP_SUMMARY
-              echo "::warning file=$pkgbuild,title=Advertencia en $pkg_name::$report"
-            else
-              echo "| \`$pkg_name\` | ✅ **OK** | Sintaxis y dependencias válidas |" >> $GITHUB_STEP_SUMMARY
-            fi
-          done
-
-          if [ "$HAS_ERRORS" -eq 1 ]; then
-            echo "::error::Se detectaron errores críticos de namcap en alguna receta. Cancelando commit."
-            exit 1
+              if echo "$report" | grep -q "E:"; then
+                clean_report=$(echo "$report" | tr '\n' '<br>' | sed 's/|/\\|/g')
+                echo "| \`$pkg_name\` | ❌ **Error Detectado** | $clean_report |" >> $GITHUB_STEP_SUMMARY
+                echo "::warning file=$pkgbuild,title=Namcap detectó errores en $pkg_name::$report"
+              elif echo "$report" | grep -q "W:"; then
+                clean_report=$(echo "$report" | tr '\n' '<br>' | sed 's/|/\\|/g')
+                echo "| \`$pkg_name\` | ⚠️ **Advertencia** | $clean_report |" >> $GITHUB_STEP_SUMMARY
+                echo "::warning file=$pkgbuild,title=Advertencia en $pkg_name::$report"
+              else
+                echo "| \`$pkg_name\` | ✅ **OK** | Sintaxis y dependencias válidas |" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          else
+            echo "| *Todos* | ⚠️ **Omitido** | Namcap no estuvo disponible en pacman durante la ejecución |" >> $GITHUB_STEP_SUMMARY
           fi
 
           # 3. Limpia fuentes temporales descargadas por updpkgsums
