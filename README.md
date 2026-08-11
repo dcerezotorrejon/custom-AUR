@@ -12,13 +12,15 @@ It keeps custom package recipes updated against upstream sources and allows cons
 custom-AUR/
 ├── .github/workflows/
 │   └── update-recipes.yml   # Continuous integration workflow
-├── pkgs/
-│   └── visual-studio-code/  # Package recipe directory
-│       ├── PKGBUILD
-│       └── .SRCINFO
-├── scripts/
+├── .scripts/
 │   ├── check-updates.py     # Updates pkgver, pkgrel & invokes updpkgsums
 │   └── generate-srcinfo.sh  # Generates .SRCINFO using makepkg
+├── google-chrome-stable/    # Package recipe directory
+│   ├── PKGBUILD
+│   └── .SRCINFO
+├── visual-studio-code/      # Package recipe directory
+│   ├── PKGBUILD
+│   └── .SRCINFO
 ├── nvchecker.toml           # Version tracking configuration
 ├── oldver.json              # Tracked version state
 └── README.md
