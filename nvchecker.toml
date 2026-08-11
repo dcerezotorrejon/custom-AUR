@@ -6,6 +6,6 @@ newver = "newver.json"
 source = "cmd"
 cmd = "curl -s https://update.code.visualstudio.com/api/releases/stable | jq -r '.[0]'"
 
-[google-chrome-stable]
-source = "cmd"
-cmd = "curl -sSf https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages | grep -A1 'Package: google-chrome-stable' | awk '/Version/{print $2}' | cut -d '-' -f1"
+#[google-chrome-stable]
+#source = "cmd"
+#cmd = "curl -sSf https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages | grep -A1 'Package: google-chrome-stable' | awk '/Version/{print $2}' | cut -d '-' -f1"
