@@ -18,18 +18,11 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          # 1. Inicializar y poblar el llavero GPG de Pacman
-          pacman-key --init
-          pacman-key --populate archlinux
+          # 1. Actualizar el sistema base del contenedor primero
+          pacman -Syu --noconfirm
 
-          # 2. Reemplazar los mirrors desfasados del contenedor por el CDN oficial global
-          cat << 'EOF' > /etc/pacman.d/mirrorlist
-          Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch
-          Server = https://mirror.rackspace.com/archlinux/$repo/os/$arch
-          EOF
-
-          # 3. Refresco total de bases de datos (-Syyu) e instalación
-          pacman -Syyu --noconfirm git pacman-contrib nvchecker python jq curl namcap
+          # 2. Instalar las herramientas sobre el sistema base actualizado
+          pacman -S --noconfirm git pacman-contrib nvchecker python jq curl namcap
           useradd --create-home builder
 
       - name: Checkout repository
