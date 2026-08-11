@@ -77,7 +77,11 @@ for raw_pkgname, info in version_map.items():
         print(f":: Warning: No matching PKGBUILD found for '{raw_pkgname}'.")
         continue
 
-    clean_ver = re.sub(r"^[vV]", "", str(new_ver))
+    # Sanitización estricta para cumplir con las reglas de Arch Linux
+    clean_ver = str(new_ver).lstrip("vV")
+    clean_ver = re.sub(r"-.*$", "", clean_ver)          # Elimina el guion y sufijo Debian/RPM (ej: 151.0.7922.108-1 -> 151.0.7922.108)
+    clean_ver = re.sub(r"[^\w.]", "", clean_ver)        # Remueve cualquier carácter no permitido en pkgver
+
     original = pkgbuild_path.read_text()
 
     # 1. Actualizar pkgver y resetear pkgrel a 1
@@ -89,7 +93,7 @@ for raw_pkgname, info in version_map.items():
         pkg_dir = pkgbuild_path.parent
         print(f":: Updated {pkg_dir.name} ({raw_pkgname}) -> {clean_ver}-1")
 
-        # 1. Actualizar sha256sums en el PKGBUILD
+        # 1. Actualizar sha256sums / sha512sums en el PKGBUILD
         print(f":: Updating checksums for {pkg_dir.name}...")
         try:
             subprocess.run(["updpkgsums"], cwd=pkg_dir, check=True)

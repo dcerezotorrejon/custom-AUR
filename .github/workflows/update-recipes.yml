@@ -44,7 +44,7 @@ jobs:
           runuser -u builder -- python3 ./.scripts/check-updates.py
 
           # 2. Auditoría con Namcap y generación de reporte en GitHub
-          pacman -S --noconfirm namcap
+          pacman -Sy --noconfirm namcap
 
           echo "## 🔍 Reporte de Auditoría de Recetas" >> $GITHUB_STEP_SUMMARY
           echo "| Paquete | Estado | Resultado / Detalles |" >> $GITHUB_STEP_SUMMARY
