@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          pacman -Syu --noconfirm git pacman-contrib nvchecker python jq curl
+          pacman -Syu --noconfirm git pacman-contrib nvchecker python jq curl namcap
           useradd --create-home builder
 
       - name: Checkout repository
@@ -44,8 +44,6 @@ jobs:
           runuser -u builder -- python3 ./.scripts/check-updates.py
 
           # 2. Auditoría con Namcap y generación de reporte en GitHub
-          pacman -Sy --noconfirm namcap
-
           echo "## 🔍 Reporte de Auditoría de Recetas" >> $GITHUB_STEP_SUMMARY
           echo "| Paquete | Estado | Resultado / Detalles |" >> $GITHUB_STEP_SUMMARY
           echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
