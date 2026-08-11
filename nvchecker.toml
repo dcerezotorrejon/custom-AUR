@@ -5,3 +5,10 @@ newver = "newver.json"
 [visual-studio-code]
 source = "cmd"
 cmd = "curl -s https://update.code.visualstudio.com/api/releases/stable | jq -r '.[0]'"
+
+[google-chrome-stable]
+source = "apt"
+pkg = "google-chrome-stable"
+mirror = "https://dl.google.com/linux/chrome/deb/"
+suite = "stable"
+arch = "amd64"
