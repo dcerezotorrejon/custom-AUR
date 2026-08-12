@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
   pages: write
 
 jobs:
@@ -18,11 +19,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          # 1. Actualizar e instalar dependencias críticas del sistema
-          pacman -Syu --noconfirm --needed git pacman-contrib nvchecker python jq curl
-          
-          # 2. Intentar instalar namcap de forma opcional (no rompe el paso si falla)
-          pacman -S --noconfirm --needed namcap || true
+          # 1. Actualizar e instalar dependencias críticas del sistema (incluyendo github-cli)
+          pacman -Syu --noconfirm --needed git pacman-contrib nvchecker python jq curl github-cli
           
           useradd --create-home builder
 
@@ -38,65 +36,17 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           chown -R builder:builder "$GITHUB_WORKSPACE"
 
-      - name: Check upstream, update PKGBUILDs & refresh .SRCINFO
+      - name: Check upstream, update PKGBUILDs & create PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -Eeuo pipefail
 
           [ -f oldver.json ] || echo '{}' > oldver.json
           nvchecker -c nvchecker.toml || true
 
-          # 1. Actualiza pkgver y recalcula hashes
+          # Ejecutar script de actualización que crea ramas, PRs y las auto-aprueba
           runuser -u builder -- python3 ./.scripts/check-updates.py
 
-          # 2. Auditoría informativa con Namcap (no bloqueante)
-          echo "## 🔍 Reporte de Auditoría de Recetas" >> $GITHUB_STEP_SUMMARY
-          echo "| Paquete | Estado | Resultado / Detalles |" >> $GITHUB_STEP_SUMMARY
-          echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
-
-          if command -v namcap >/dev/null 2>&1; then
-            for pkgbuild in ./*/PKGBUILD; do
-              pkg_name=$(basename "$(dirname "$pkgbuild")")
-              report=$(namcap "$pkgbuild" 2>&1 || true)
-
-              if echo "$report" | grep -q "E:"; then
-                clean_report=$(echo "$report" | tr '\n' '<br>' | sed 's/|/\\|/g')
-                echo "| \`$pkg_name\` | ❌ **Error Detectado** | $clean_report |" >> $GITHUB_STEP_SUMMARY
-                echo "::warning file=$pkgbuild,title=Namcap detectó errores en $pkg_name::$report"
-              elif echo "$report" | grep -q "W:"; then
-                clean_report=$(echo "$report" | tr '\n' '<br>' | sed 's/|/\\|/g')
-                echo "| \`$pkg_name\` | ⚠️ **Advertencia** | $clean_report |" >> $GITHUB_STEP_SUMMARY
-                echo "::warning file=$pkgbuild,title=Advertencia en $pkg_name::$report"
-              else
-                echo "| \`$pkg_name\` | ✅ **OK** | Sintaxis y dependencias válidas |" >> $GITHUB_STEP_SUMMARY
-              fi
-            done
-          else
-            echo "| *Todos* | ⚠️ **Omitido** | Namcap no estuvo disponible en pacman durante la ejecución |" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # 3. Limpia fuentes temporales descargadas por updpkgsums
+          # Limpia fuentes temporales descargadas por updpkgsums
           git clean -fxd ./
-
-          if [ -f newver.json ] && [ -s newver.json ]; then
-            mv newver.json oldver.json
-          fi
-
-          chown -R builder:builder "$GITHUB_WORKSPACE"
-
-      - name: Commit and push changes
-        env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-        run: |
-          set -Eeuo pipefail
-          
-          git add oldver.json
-          while IFS= read -r -d '' file; do
-            git add "$file"
-          done < <(find . \( -name PKGBUILD -o -name .SRCINFO \) -print0)
-
-          if git diff --cached --quiet; then
-            echo ":: No changes to commit."
-          else
-            git commit -m "auto: update PKGBUILD recipes"
-            git push origin "HEAD:${DEFAULT_BRANCH}"
-          fi

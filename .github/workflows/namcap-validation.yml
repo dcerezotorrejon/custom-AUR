@@ -1,0 +1,54 @@
+name: Namcap Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  namcap:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm --needed git namcap pacman-contrib
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Namcap on modified PKGBUILDs
+        run: |
+          set -Eeuo pipefail
+          
+          # Obtener la rama base para comparar cambios
+          git fetch origin ${{ github.base_ref }}
+          modified_pkgbuilds=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep 'PKGBUILD$' || true)
+          
+          if [ -z "$modified_pkgbuilds" ]; then
+            echo "No PKGBUILD files modified in this PR."
+            exit 0
+          }
+          
+          has_errors=0
+          for pkgbuild in $modified_pkgbuilds; do
+            echo "Running namcap on $pkgbuild..."
+            report=$(namcap "$pkgbuild" 2>&1 || true)
+            echo "$report"
+            
+            if echo "$report" | grep -q "E:"; then
+              echo "::error file=$pkgbuild::Namcap detected errors."
+              has_errors=1
+            fi
+          done
+          
+          if [ "$has_errors" -eq 1 ]; then
+            echo "Namcap found errors (E:) in one or more PKGBUILDs. Failing validation."
+            exit 1
+          else
+            echo "Namcap validation passed successfully."
+          }
