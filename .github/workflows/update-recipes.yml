@@ -31,13 +31,15 @@ jobs:
 
       - name: Prepare permissions
         run: |
+          # Configurar safe.directory a nivel de sistema para evitar errores de ownership con cualquier usuario
+          git config --system --add safe.directory "$GITHUB_WORKSPACE"
+
           # Asignar propiedad del espacio de trabajo al usuario builder
           chown -R builder:builder "$GITHUB_WORKSPACE"
 
-          # Configurar la identidad de Git y directorio seguro para el usuario builder
+          # Configurar la identidad de Git para el usuario builder
           runuser -u builder -- git config --global user.name "github-actions[bot]"
           runuser -u builder -- git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          runuser -u builder -- git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Check upstream, update PKGBUILDs & create PRs
         env:
@@ -51,5 +53,5 @@ jobs:
           # Ejecutar script de actualización que crea ramas, PRs y las auto-aprueba
           runuser -u builder -- python3 ./.scripts/check-updates.py
 
-          # Limpia fuentes temporales descargadas por updpkgsums
-          git clean -fxd ./
+          # Limpia fuentes temporales ejecutado como el usuario builder
+          runuser -u builder -- git clean -fxd ./
