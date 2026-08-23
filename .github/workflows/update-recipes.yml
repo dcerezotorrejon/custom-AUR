@@ -19,9 +19,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          # 1. Actualizar e instalar dependencias críticas del sistema (incluyendo github-cli)
           pacman -Syu --noconfirm --needed git pacman-contrib nvchecker python jq curl github-cli
-          
           useradd --create-home builder
 
       - name: Checkout repository
@@ -31,27 +29,21 @@ jobs:
 
       - name: Prepare permissions
         run: |
-          # Configurar safe.directory a nivel de sistema para evitar errores de ownership con cualquier usuario
           git config --system --add safe.directory "$GITHUB_WORKSPACE"
-
-          # Asignar propiedad del espacio de trabajo al usuario builder
           chown -R builder:builder "$GITHUB_WORKSPACE"
 
-          # Configurar la identidad de Git para el usuario builder
           runuser -u builder -- git config --global user.name "github-actions[bot]"
           runuser -u builder -- git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Check upstream, update PKGBUILDs & create PRs
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Usamos el PAT guardado para que las PRs abran automáticamente los checks derivados (Namcap)
+          GH_TOKEN: ${{ secrets.AUTO_PR_TOKEN }}
         run: |
           set -Eeuo pipefail
 
           [ -f oldver.json ] || echo '{}' > oldver.json
           nvchecker -c nvchecker.toml || true
 
-          # Ejecutar script de actualización que crea ramas, PRs y las auto-aprueba
           runuser -u builder -- python3 ./.scripts/check-updates.py
-
-          # Limpia fuentes temporales ejecutado como el usuario builder
           runuser -u builder -- git clean -fxd ./

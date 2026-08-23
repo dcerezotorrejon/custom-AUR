@@ -26,13 +26,14 @@ jobs:
           set -Eeuo pipefail
           
           # Obtener la rama base para comparar cambios
+          git config --system --add safe.directory "$GITHUB_WORKSPACE"
           git fetch origin ${{ github.base_ref }}
           modified_pkgbuilds=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep 'PKGBUILD$' || true)
           
           if [ -z "$modified_pkgbuilds" ]; then
             echo "No PKGBUILD files modified in this PR."
             exit 0
-          }
+          fi
           
           has_errors=0
           for pkgbuild in $modified_pkgbuilds; do
@@ -51,4 +52,4 @@ jobs:
             exit 1
           else
             echo "Namcap validation passed successfully."
-          }
+          fi
