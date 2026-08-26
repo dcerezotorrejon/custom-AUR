@@ -7,7 +7,7 @@
 # or use: $ curl -sSf https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages | grep -A1 "Package: google-chrome-stable" | awk '/Version/{print $2}' | cut -d '-' -f1
 
 pkgname=google-chrome-stable
-pkgver=151.0.7922.173
+pkgver=152.0.7977.64
 pkgrel=1
 _channel=stable
 pkgdesc="The popular web browser by Google (Stable Channel)"
@@ -40,7 +40,7 @@ source=(
 )
 sha256sums=('e93c01576427cad9099f2cf0df0be70d0a2cc0a3a66c743318b2138aa7c4ed93'
             '04e973a4c359a87ef63871ec8726e08fabe9919c60f972d5ca6f56f80a2939ed'
-            '878e5ab495b8a694980fca61bc09b37e651ccedce2291c73434d16e48a2646fd')
+            '4eae0736a812d9bc851cd2937f7af00e47dbaf8305845eed452703ff009873c7')
 
 package() {
     bsdtar -xf data.tar.xz -C "$pkgdir/"
