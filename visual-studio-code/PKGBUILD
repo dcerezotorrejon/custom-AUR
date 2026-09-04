@@ -1,7 +1,7 @@
 # Maintainer: Daniel Cerezo <dcerezotorrejon>
 pkgname=visual-studio-code
 _pkgname=code
-pkgver=1.136.0
+pkgver=1.136.1
 pkgrel=1
 pkgdesc="Visual Studio Code - Official binary build from Microsoft"
 arch=('x86_64')
@@ -91,4 +91,4 @@ EOF
         install -m644 "$LICENSE_FILE" "${pkgdir}/usr/share/licenses/${pkgname}/"
     fi
 }
-sha256sums_x86_64=('4341eaa7e03d1fc24a3ac9d64fc7e348c9283adc07ab5c2cfa168d8f957074f7')
+sha256sums_x86_64=('9b4a54f0d49beaa413eda137d00c6541a639300d479efcac566ad13419409218')

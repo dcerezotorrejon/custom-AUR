@@ -2,10 +2,10 @@
   "version": 2,
   "data": {
     "google-chrome-stable": {
-      "version": "152.0.7977.75"
+      "version": "152.0.7977.82"
     },
     "visual-studio-code": {
-      "version": "1.136.0"
+      "version": "1.136.1"
     }
   }
 }
