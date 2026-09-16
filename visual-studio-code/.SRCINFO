@@ -1,6 +1,6 @@
 pkgbase = visual-studio-code
 	pkgdesc = Visual Studio Code - Official binary build from Microsoft
-	pkgver = 1.137.0
+	pkgver = 1.138.0
 	pkgrel = 1
 	url = https://code.visualstudio.com/
 	arch = x86_64
@@ -30,7 +30,7 @@ pkgbase = visual-studio-code
 	conflicts = code
 	conflicts = visual-studio-code-bin
 	conflicts = code-git
-	source_x86_64 = vscode-1.137.0-x64.tar.gz::https://update.code.visualstudio.com/1.137.0/linux-x64/stable
-	sha256sums_x86_64 = 8871d637292568e34c2d27daa5320a3b3c805f41f94014dfceafbe6134187fce
+	source_x86_64 = vscode-1.138.0-x64.tar.gz::https://update.code.visualstudio.com/1.138.0/linux-x64/stable
+	sha256sums_x86_64 = 59fb0f88eab2fe2e3a053ac020e18fcb2b5c113d255e41c82d26302b675d580c
 
 pkgname = visual-studio-code
