@@ -189,6 +189,11 @@ for raw_pkgname, info in version_map.items():
                 "--body", "Auto-approved update PR."
             ], check=True)
 
+            print(f":: Enabling auto-merge for {app_name}...")
+            subprocess.run([
+                "gh", "pr", "merge", branch_name, "--auto", "--merge"
+            ], check=True)
+
         except subprocess.CalledProcessError as e:
             print(f":: Error creating or approving PR for {app_name}: {e}")
 
